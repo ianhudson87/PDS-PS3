@@ -25,11 +25,54 @@ library(tidyverse)
 primaryPolls<-read_csv('https://jmontgomery.github.io/PDS/Datasets/president_primary_polls_feb2020.csv')
 primaryPolls$start_date<-as.Date(primaryPolls$start_date, "%m/%d/%y")
 
-primaryPolls %>% select(sample_size)
-
 # get useful columns of data
-basicPolls<-select(primaryPolls, state, candidate_name, start_date, pct)
+basicPolls<-select(primaryPolls, state, candidate_name, start_date, pct, sample_size)
 
 # get relevant candidates
 basicPolls <- basicPolls %>% filter(candidate_name %in% c("Amy Klobuchar", "Bernard Sanders", "Elizabeth Warren", "Joseph R. Biden Jr.", "Michael Bloomberg", "Pete Buttigieg"))
 basicPolls <- basicPolls %>% arrange(state)
+
+# create new column that indicates how many votes the candidate received at each poll. There may be many polls in one state
+basicPolls <- basicPolls %>% mutate(votesReceivedAtPoll = round(sample_size * (pct/100)))
+
+basicPolls
+
+# group the data by state and candidate and sum up the total number of votes received in each group.
+# data tells us how many votes each candidate got in the entire state
+by_state_candidate <- basicPolls %>% group_by(state, candidate_name)
+by_state_candidate <- by_state_candidate %>% summarise(votesForCandidateInState=sum(votesReceivedAtPoll))
+
+# need to find total number of votes that were cast in each state
+votes_by_state <- basicPolls %>% group_by(state) %>% summarise(totalVotesInTheState=sum(votesReceivedAtPoll))
+
+# for each column store the total number of votes in the state in order to find the percentage of the state that voted for each candidate
+by_state_candidate <- by_state_candidate %>% inner_join(votes_by_state, totalVotesInTheState, by='state')
+by_state_candidate <- by_state_candidate %>% mutate(percentageOfStateForCandidate = votesForCandidateInState/totalVotesInTheState)
+
+# final dataset
+by_state_candidate
+
+print(paste('Original size:', object.size(primaryPolls), 'bytes. New size:', object.size(by_state_candidate), "bytes."))
+
+
+### PART 3
+library(fivethirtyeight)
+library(tidyverse)
+polls <- read_csv('https://jmontgomery.github.io/PDS/Datasets/president_primary_polls_feb2020.csv')
+Endorsements <- endorsements_2020
+
+Endorsements
+Endorsements <- rename(Endorsements, candidate_name=endorsee)
+
+# convert endorsements to tibble
+Endorsements<-as_tibble(Endorsements)
+
+# filter polls to only contain candidates with certain names. THen subset down to certain columns
+polls$candidate_name
+polls <- polls %>%
+  filter(candidate_name %in% c("Amy Klobuchar", "Bernard Sanders", "Elizabeth Warren", "Joseph R. Biden Jr.", "Michael Bloomberg", "Pete Buttigieg")) %>%
+  select(candidate_name, sample_size, start_date, party, pct)
+
+
+unique(Endorsements %>% select(candidate_name))
+unique(polls %>% select(candidate_name))
