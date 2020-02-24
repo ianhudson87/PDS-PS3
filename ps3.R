@@ -10,8 +10,6 @@ primaryPolls<-primaryPolls[primaryPolls$candidate_name%in%c("Amy Klobuchar", "Be
 # get data from dsired states
 poll.data<-primaryPolls[primaryPolls$state %in% c("Alabama", "Arkansas", "California", "Colorado", "Maine", "Massachusetts", "Minnesota", "North Carolina", "Oklahoma", "Tennessee", "Texas", "Utah", "Vermont", "Virginia"),]
 
-poll.data
-
 ggplot(data=poll.data, mapping=aes(x=start_date, y=pct))+
   geom_point(mapping=aes(color=state))+
   geom_smooth(se=F)+
