@@ -76,3 +76,15 @@ polls <- polls %>%
 
 unique(Endorsements %>% select(candidate_name))
 unique(polls %>% select(candidate_name))
+
+# replace candidate_names that have "Bernard Sanders" with "Bernie Sanders", "Joseph R. Biden Jr." with "Joe Biden"
+polls <- polls %>% mutate(candidate_name=replace(candidate_name, candidate_name=="Bernard Sanders", "Bernie Sanders"))
+polls <- polls %>% mutate(candidate_name=replace(candidate_name, candidate_name=="Joseph R. Biden Jr.", "Joe Biden"))
+
+polls
+Endorsements
+
+combined_data <- Endorsements %>% inner_join(polls, by='candidate_name')
+unique(combined_data %>% select(candidate_name))
+
+number_of_endorsements <- Endorsements %>% group_by(candidate_name) %>% summarise(number_of_endorsements = n())
