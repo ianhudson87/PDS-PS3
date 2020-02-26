@@ -87,4 +87,38 @@ Endorsements
 combined_data <- Endorsements %>% inner_join(polls, by='candidate_name')
 unique(combined_data %>% select(candidate_name))
 
-number_of_endorsements <- Endorsements %>% group_by(candidate_name) %>% summarise(number_of_endorsements = n())
+
+endorsements_by_candidate <- Endorsements %>% group_by(candidate_name) %>% summarise(number_of_endorsements = n()) %>% filter(!is.na(candidate_name))
+endorsements_by_candidate
+p<-ggplot(data=endorsements_by_candidate, mapping=aes(x=candidate_name, y=number_of_endorsements))+
+  geom_point()
+p+theme_dark()+theme(axis.text.x=element_text(angle=90, hjust=1)) # rotate x labels
+
+p+theme_minimal()+labs(x='Candidate', y='Number of Endorsements', title='Endorsements by Candidate')+theme(axis.text.x=element_text(angle=90, hjust=1)) # rotate x labels
+
+
+### PART 4
+library(tidyverse)
+#install.packages('tm')
+library(tm)
+#install.packages('lubridate')
+library(lubridate)
+#install.packages('wordcloud')
+library(wordcloud)
+tweets <- read_csv('https://politicaldatascience.com/PDS/Datasets/trump_tweets.csv')
+
+
+created_at_time<-unlist(str_split(tweets$created_at, pattern=" "))[c(F,T)]
+created_at_time<-str_pad(created_at_time, 5, pad="0")
+
+tweets <- tweets %>% mutate(created_at_date = as.Date(unlist(str_split(created_at, pattern=" "))[c(T,F)], "%m/%d/%Y"), created_at_time = created_at_time) 
+
+
+# sort by date then by time within date. Can sort by date after using as.Date because dates are written as YYYY-MM-DD which will order by date if using lexicographical ordering
+# in order to sort time using lexicographical ordering, we need to pad the hours with 0 so that the format is HH:MM
+(tweets %>% arrange(created_at_date, created_at_time) %>% select(created_at))[c(1,nrow(tweets)),]
+
+(tweets %>% arrange(created_at_date, created_at_time) %>% select(created_at_time))[1:20,]
+
+head(as.Date(tweets$created_at, format="%b/%d/%y %h:%m"))
+as.Date("2/14/2020", format="%m/%d/%y")
