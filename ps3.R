@@ -168,11 +168,19 @@ b<-paste((unlist(str_split(processed_tweets$text, pattern=" "))), collapse=' ')
 as.DocumentTermMatrix(b, control=list(weighting = weightTfIdf), weighting = weightTfIdf)
 
 install.packages("SnowballC")
-corpus<-Corpus(VectorSource(b))
-corpus[[1]][1]
-matrixthing<-TermDocumentMatrix(corpus, control=list(weighting = weightTfIdf)) 
-matrixthing
+corpus<-Corpus(VectorSource(processed_tweets$text))
+matrixthing<-TermDocumentMatrix(corpus, control=list(weighting = weightTfIdf))
+
+library('slam')
+row_sums(matrixthing)
+
+classas.matrix(matrixthing[0:100,1:10])
+matrixthing<-matrixthing[,1:10]
+dim(matrixthing)
+sort(rowSums(as.matrix(matrixthing)))[1:10]
+sort(matrixthing)
+
 m<-rowSums(as.matrix(matrixthing))
 sort(m, decreasing=F)
-ainspect(matrixthing[10:12,1:3])
+as.matrix(matrixthing[,1])
 plot(sort(m, decreasing = T),col="blue",main="Word TF-IDF frequencies", xlab="TF-IDF-based rank", ylab = "TF-IDF")
