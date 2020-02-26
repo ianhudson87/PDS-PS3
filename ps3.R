@@ -145,7 +145,7 @@ get_non_stop<-function(tweet){
 processed_tweets<-original_tweets %>%
   select(text) %>%
   mutate(text=removePunctuation(text)) %>%
-  mutate(text=str_remove_all(text, "'|'|"|"|-")) %>%
+  mutate(text=str_remove_all(text, "'|'|"|"|-|amp|RT")) %>%
   mutate(text=removeNumbers(text)) %>%
   mutate(text=tolower(text)) %>%
   mutate(text=removeWords(text, removePunctuation(c(stopwords('en'), c('see', 'people','new','want','one','even','must','need','done','back','just','going', 'know', 'can','said','like','many','like','realdonaldtrump'))))) %>%
@@ -154,53 +154,10 @@ processed_tweets<-original_tweets %>%
 
 # use str_split to get all the words to be separated and ulist to get them all in one list
 # then use a tibble to count up the number of occurences of each word
-as.tibble(unlist(str_split(processed_tweets$text, pattern=" "))) %>%
+counts<-as.tibble(unlist(str_split(processed_tweets$text, pattern=" "))) %>%
   group_by(value) %>%
-  summarise(count = n())
+  summarise(count = n()) %>%
+  arrange(-count)
+counts
 
-  
-  # mutate(text=str_split(text, pattern=' '))
-  # mutate(text=lapply(text, function(tweet) get_non_stop(tweet)))
-
-removeWords(original_tweets$text[1], removePunctuation(stopwords('en')))
-
-removePunctuation(c(stopwords('en'), c('see', 'people','new','want','one','even','must','need','done','back','just','going', 'know', 'can','said','like','many','like','realdonaldtrump')))
-
-
-paste(a$text[[1]], sep='')
-
-as.tibble(unlist(a$text)) %>% group_by(value) %>% summarise(count = n())
-
-class(a %>% select(text))
-
-paste(a$text, collapse=' ')
-
-as.tibble(unlist(str_split(a$text, pattern=" "))) %>% group_by(value) %>% summarise(count = n())
-
-
-removeWords(a$text,c('hi','hello'))
-
-a$text
-get_non_stop(a$text[[1000]])
-b<-lapply(tweets$text, function(tweet) get_non_stop(tweet))
-b
-
-a$text[[1000]][1]
-
-exp<-paste(removePunctuation(stopwords('en')), collapse='|') # regex for selecting any stopword
-exp
-str_remove_all(a$text, exp)
-
-a<-mutate(text=text[[1]])
-
-a<-tweets$text
-# a<-"h.!@#)&  1238 (*Ello  1279830!  There!! this is me, I am I. Is this a stop word: because11 "
-a<-removePunctuation(a) # do this first because if you have " ! " it will think that ! is word and not remove the space around it
-a<-removeNumbers(a)
-a<-stripWhitespace(a)
-a<-tolower(a)
-a
-a<-str_split(a, pattern=' ')
-a<-a[[1]]
-a<-a[!(a %in% stopwords('en'))]
-paste(a, collapse=' ')
+wordcloud(words=counts$value, freq=counts$count, min.freq=3, max.words=50)
