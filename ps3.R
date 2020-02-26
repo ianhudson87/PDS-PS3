@@ -113,12 +113,94 @@ created_at_time<-str_pad(created_at_time, 5, pad="0")
 
 tweets <- tweets %>% mutate(created_at_date = as.Date(unlist(str_split(created_at, pattern=" "))[c(T,F)], "%m/%d/%Y"), created_at_time = created_at_time) 
 
-
 # sort by date then by time within date. Can sort by date after using as.Date because dates are written as YYYY-MM-DD which will order by date if using lexicographical ordering
-# in order to sort time using lexicographical ordering, we need to pad the hours with 0 so that the format is HH:MM
-(tweets %>% arrange(created_at_date, created_at_time) %>% select(created_at))[c(1,nrow(tweets)),]
+# in order to sort time using lexicographical ordering, we need to pad the hours with 0 so that the format is HH:MM, which we do above
+# get the first and last elements of the tibble after they are sorted by date to get the range of dates
+date_range<-(tweets %>% arrange(created_at_date, created_at_time) %>% select(created_at))[c(1,nrow(tweets)),]
+date_range[1,]
 
-(tweets %>% arrange(created_at_date, created_at_time) %>% select(created_at_time))[1:20,]
+print(paste('the tweets are from', date_range[1,], 'to', date_range[2,]))
 
-head(as.Date(tweets$created_at, format="%b/%d/%y %h:%m"))
-as.Date("2/14/2020", format="%m/%d/%y")
+original_tweets <- tweets %>% filter(is_retweet == FALSE)
+
+# most popular tweets
+most_liked <- (original_tweets %>% arrange(-favorite_count))[1:5,]
+most_liked$text
+
+# most retweeted tweets
+most_retweeted <- (original_tweets %>% arrange(-retweet_count))[1:5,]
+most_retweeted
+
+# remove extra whitespace
+
+# description: removes stop words from a list of string
+# input: list of strings
+# output: list of strings
+get_non_stop<-function(tweet){
+  list_of_stops<-c(stopwords('en'), c('see', 'people','new','want','one','even','must','need','done','back','just','going', 'know', 'can','said','like','many','like','realdonaldtrump'))
+  a<-tweet[!(tweet %in% list_of_stops)]
+  return(a)
+}
+
+processed_tweets<-original_tweets %>%
+  select(text) %>%
+  mutate(text=removePunctuation(text)) %>%
+  mutate(text=str_remove_all(text, "'|'|"|"|-")) %>%
+  mutate(text=removeNumbers(text)) %>%
+  mutate(text=tolower(text)) %>%
+  mutate(text=removeWords(text, removePunctuation(c(stopwords('en'), c('see', 'people','new','want','one','even','must','need','done','back','just','going', 'know', 'can','said','like','many','like','realdonaldtrump'))))) %>%
+  mutate(text=stripWhitespace(text)) %>%
+  mutate(text=str_trim(text))
+
+# use str_split to get all the words to be separated and ulist to get them all in one list
+# then use a tibble to count up the number of occurences of each word
+as.tibble(unlist(str_split(processed_tweets$text, pattern=" "))) %>%
+  group_by(value) %>%
+  summarise(count = n())
+
+  
+  # mutate(text=str_split(text, pattern=' '))
+  # mutate(text=lapply(text, function(tweet) get_non_stop(tweet)))
+
+removeWords(original_tweets$text[1], removePunctuation(stopwords('en')))
+
+removePunctuation(c(stopwords('en'), c('see', 'people','new','want','one','even','must','need','done','back','just','going', 'know', 'can','said','like','many','like','realdonaldtrump')))
+
+
+paste(a$text[[1]], sep='')
+
+as.tibble(unlist(a$text)) %>% group_by(value) %>% summarise(count = n())
+
+class(a %>% select(text))
+
+paste(a$text, collapse=' ')
+
+as.tibble(unlist(str_split(a$text, pattern=" "))) %>% group_by(value) %>% summarise(count = n())
+
+
+removeWords(a$text,c('hi','hello'))
+
+a$text
+get_non_stop(a$text[[1000]])
+b<-lapply(tweets$text, function(tweet) get_non_stop(tweet))
+b
+
+a$text[[1000]][1]
+
+exp<-paste(removePunctuation(stopwords('en')), collapse='|') # regex for selecting any stopword
+exp
+str_remove_all(a$text, exp)
+
+a<-mutate(text=text[[1]])
+
+a<-tweets$text
+# a<-"h.!@#)&  1238 (*Ello  1279830!  There!! this is me, I am I. Is this a stop word: because11 "
+a<-removePunctuation(a) # do this first because if you have " ! " it will think that ! is word and not remove the space around it
+a<-removeNumbers(a)
+a<-stripWhitespace(a)
+a<-tolower(a)
+a
+a<-str_split(a, pattern=' ')
+a<-a[[1]]
+a<-a[!(a %in% stopwords('en'))]
+paste(a, collapse=' ')
