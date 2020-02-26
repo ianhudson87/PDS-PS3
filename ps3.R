@@ -1,4 +1,5 @@
 rm(list=ls())
+library(ggplot2)
 
 ### PART 1
 
@@ -161,3 +162,17 @@ counts<-as.tibble(unlist(str_split(processed_tweets$text, pattern=" "))) %>%
 counts
 
 wordcloud(words=counts$value, freq=counts$count, min.freq=3, max.words=50)
+
+b<-paste((unlist(str_split(processed_tweets$text, pattern=" "))), collapse=' ')
+
+as.DocumentTermMatrix(b, control=list(weighting = weightTfIdf), weighting = weightTfIdf)
+
+install.packages("SnowballC")
+corpus<-Corpus(VectorSource(b))
+corpus[[1]][1]
+matrixthing<-TermDocumentMatrix(corpus, control=list(weighting = weightTfIdf)) 
+matrixthing
+m<-rowSums(as.matrix(matrixthing))
+sort(m, decreasing=F)
+ainspect(matrixthing[10:12,1:3])
+plot(sort(m, decreasing = T),col="blue",main="Word TF-IDF frequencies", xlab="TF-IDF-based rank", ylab = "TF-IDF")
