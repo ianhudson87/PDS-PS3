@@ -155,7 +155,7 @@ processed_tweets<-original_tweets %>%
 
 # use str_split to get all the words to be separated and ulist to get them all in one list
 # then use a tibble to count up the number of occurences of each word
-counts<-as.tibble(unlist(str_split(processed_tweets$text, pattern=" "))) %>%
+counts<-as_tibble(unlist(str_split(processed_tweets$text, pattern=" "))) %>%
   group_by(value) %>%
   summarise(count = n()) %>%
   arrange(-count)
@@ -163,13 +163,11 @@ counts
 
 wordcloud(words=counts$value, freq=counts$count, min.freq=3, max.words=50)
 
-b<-paste((unlist(str_split(processed_tweets$text, pattern=" "))), collapse=' ')
 
-as.DocumentTermMatrix(b, control=list(weighting = weightTfIdf), weighting = weightTfIdf)
-
-install.packages("SnowballC")
+# create DTM
 corpus<-Corpus(VectorSource(processed_tweets$text))
 matrixthing<-TermDocumentMatrix(corpus, control=list(weighting = weightTfIdf))
 
+# get 50 words with highets tf-idf
 library('slam')
 sort(row_sums(matrixthing), decreasing=T)[1:50]
